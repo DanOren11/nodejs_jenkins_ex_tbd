@@ -1,8 +1,5 @@
 pipeline {
     agent { label 'ansible_node' }
-    environment {
-    MY_MESSAGE = "Hello from Jenkins!"
-    }
     tools{
         nodejs "my_node_tool"
     }
