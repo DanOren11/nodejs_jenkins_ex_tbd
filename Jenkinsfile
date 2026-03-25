@@ -24,7 +24,7 @@ pipeline {
             steps {
                 script {
                     def response = sh(
-                        script: "curl -s -f http://localhost:3005/time",
+                        script: "curl -s -f http://localhost:3000/time",
                         returnStdout: true
                     ).trim()
 
