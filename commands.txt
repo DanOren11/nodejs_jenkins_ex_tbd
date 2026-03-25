@@ -1,0 +1,85 @@
+Now we are going to start after we added all the endpoints 
+
+we are going to create Jenkins master and nodejs slave 
+
+lets create the jenkins master and add Credentials for Github...!
+
+docker volume create jenkins_master_tbd
+
+docker run -d --name jenkins_master1 -p 50005:50000 -p 3005:3000 -p 8055:8080 -v jenkins_master_tbd:/var/jenkins_home jenkins/jenkins:lts
+
+docker logs jenkins_master1 -> <container id/name>
+
+username and password = admin
+
+in jenkins we downloading { Stage view } for better view and { Nodejs } plugins for better handeling...
+
+Add in tools {
+   Nodejs "my_node_tool" -- name my_node_tool
+}
+add in Credentials{
+    1. the ssh private key -- name 
+    2. the git repo PAT -- name my_node_tool
+}
+------------------------------------------------------
+
+Now we need to create the ansible_node the image already created in my docker hub
+docker run -d --name ansible_node1 -p 2222:22 danpowercom/ansible-slave:v.05
+
+docker exec -it ansible_node1 bash
+
+apt-get update
+apt-get install -y git openjdk-17-jdk openssh-server
+mkdir -p /home/ansible/.ssh
+chmod 700 /home/ansible/.ssh
+service ssh start
+------------------------------------------------------
+Generate SSH key directly inside Jenkins container
+docker exec -it --user root jenkins_master1 bash
+
+mkdir -p /var/jenkins_home/.ssh
+ssh-keygen -t rsa -b 2048 -f /var/jenkins_home/.ssh/ansible_node1 -N ""
+chmod 600 /var/jenkins_home/.ssh/ansible_node1
+chown jenkins:jenkins /var/jenkins_home/.ssh/ansible_node1
+-------------------------------------------------------------
+first get the key to folder
+docker cp jenkins_master1:/var/jenkins_home/.ssh/ansible_node1 .
+then copy it from the folder to the slave container
+docker cp ansible_node1.pub ansible_node1:/home/ansible/.ssh/authorized_keys
+
+
+change permissionsm get in the container as root
+docker exec --user root -it ansible_node1 bash
+chown ansible:ansible /home/ansible/.ssh/authorized_keys
+chmod 600 /home/ansible/.ssh/authorized_keys
+chmod 700 /home/ansible/.ssh
+
+--------------------------------------------------------------
+
+Test SSH connection from Jenkins container
+log in 
+docker exec -it jenkins_master1 bash
+ssh -i /var/jenkins_home/.ssh/ansible_node1 ansible@172.17.0.2 -p 22
+
+After that we should start to add the Credentials
+
+Lets test the ssh connection locally From jenkins container
+ssh ansible@localhost -p 2222 -> If the connection fail, Jenkins connection will also fail...
+
+Go to manage jenkins > Nodes > Add node. Name it e.g my-node
+ansible_node
+ROOT DIRECTORY -> /home/jenkins
+Label { Better to put the same value as the name } in my case ansible_node
+Launch method -> Via ssh -> your host is the node ip address 
+the command -> docker inspect ansible_node1 {Your container id/name} my is ansible_node1
+my slave ip ->  172.17.0.3 -> put this value in the Host
+In the Credentials add ours ssh_key
+for the Host Key Verification Strategy -> make it Non Verifying 
+******
+in ssh_key Credentials -> must use the right name outherwise it won't work
+Add SSH credentials in Jenkins
+Go to Manage Jenkins → Credentials → Global → Add Credentials
+Type: SSH Username with private key
+Username: ansible
+Private Key: Enter directly or from /var/jenkins_home/.ssh/ansible_node1
+ID: ssh_key
