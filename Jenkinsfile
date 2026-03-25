@@ -15,6 +15,11 @@ pipeline {
                 sh 'nohup node index.js > app.log 2>&1 &'
             }
         }
+        stage('Wait 3 Seconds') {
+            steps {
+               sh 'echo "Waiting 3 seconds..." && sleep 3'
+            }
+        }
         stage('test time endpoint'){
             steps {
                 script {
