@@ -16,9 +16,9 @@ pipeline {
                 sh 'nohup node index.js > app.log 2>&1 &'
             }
         }
-        stage('Wait 3 Seconds') {
+        stage('Wait 10 Seconds') {
             steps {
-               sh 'echo "Waiting 3 seconds..." && sleep 3'
+               sh 'echo "Waiting 10 seconds..." && sleep 10'
             }
         }
         stage('test time endpoint'){
@@ -50,7 +50,10 @@ pipeline {
                     ).trim()
 
                     try {
-                        def json = readJSON text: response
+                      def health = readJSON text: response
+                      if (health.status != "OK") {
+                        error("Health check failed!")
+                      }
                         echo "health endpoint returned: ${json}"
                     } catch(Exception e) {
                         error("Time endpoint did not return valid JSON!")
