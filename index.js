@@ -12,7 +12,7 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/time", (req, res) => {
-  res.json({timestemp: Date.now() });
+  res.json({timestamp: Date.now() });
 });
 
 app.listen(port, () => {

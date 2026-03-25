@@ -30,6 +30,9 @@ pipeline {
 
                     try {
                         def json = readJSON text: response
+                        def ts = json.timestamp
+                        def date = new Date(ts)
+                        echo "Time: ${date}"
                         echo "Time endpoint returned: ${json}"
                     } catch(Exception e) {
                         error("Time endpoint did not return valid JSON!")
