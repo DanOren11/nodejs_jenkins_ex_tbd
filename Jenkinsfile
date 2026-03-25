@@ -54,9 +54,9 @@ pipeline {
                       if (health.status != "OK") {
                         error("Health check failed!")
                       }
-                        echo "health endpoint returned: ${json}"
+                        echo "Health endpoint returned: ${health}"
                     } catch(Exception e) {
-                        error("Time endpoint did not return valid JSON!")
+                        error("Health endpoint did not return valid JSON!")
                     }
                 }
             }
