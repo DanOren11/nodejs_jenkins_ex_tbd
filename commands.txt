@@ -83,3 +83,9 @@ Type: SSH Username with private key
 Username: ansible
 Private Key: Enter directly or from /var/jenkins_home/.ssh/ansible_node1
 ID: ssh_key
+
+
+to run the index.js app and go for another step after it without close the app 
+  steps {
+        sh 'nohup node index.js > app.log 2>&1 &'
+    }

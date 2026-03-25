@@ -12,7 +12,24 @@ pipeline {
         }
         stage('Run Node App') {
             steps {
-                sh 'node index.js'
+                sh 'nohup node index.js > app.log 2>&1 &'
+            }
+        }
+        stage('test time endpoint'){
+            steps {
+                script {
+                    def response = sh(
+                        script: "curl -s -f http://localhost:3005/time",
+                        returnStdout: true
+                    ).trim()
+
+                    try {
+                        def json = readJSON text: response
+                        echo "Time endpoint returned: ${json}"
+                    } catch(Exception e) {
+                        error("Time endpoint did not return valid JSON!")
+                    }
+                }
             }
         }
     }
