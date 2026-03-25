@@ -1,5 +1,8 @@
 pipeline {
     agent { label 'ansible_node' }
+    environment {
+    MY_MESSAGE = "Hello from Jenkins!"
+    }
     tools{
         nodejs "my_node_tool"
     }
@@ -8,6 +11,7 @@ pipeline {
         stage('Init and install') {
             steps {
                 sh 'npm i express'
+                sh 'npm i dotenv'
             }
         }
         stage('Run Node App') {
@@ -38,6 +42,39 @@ pipeline {
                         error("Time endpoint did not return valid JSON!")
                     }
                 }
+            }
+        }
+        stage('test health endpoint'){
+            steps {
+                script {
+                    def response = sh(
+                        script: "curl -s -f http://localhost:3000/health",
+                        returnStdout: true
+                    ).trim()
+
+                    try {
+                        def json = readJSON text: response
+                        echo "health endpoint returned: ${json}"
+                    } catch(Exception e) {
+                        error("Time endpoint did not return valid JSON!")
+                    }
+                }
+            }
+        }
+        stage('test / endpoint'){
+              steps {
+                script {
+                  def response = sh(
+                        script: "curl -s -f http://localhost:3000/",
+                      returnStdout: true
+                  ).trim()
+                 echo "/ endpoint returned: ${response}"
+                }
+            }
+        }
+        stage('Kill node after the tests'){
+            steps{
+               sh ' pkill -f "node index.js" || true'
             }
         }
     }
